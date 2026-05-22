@@ -1,0 +1,131 @@
+# DocuMind AI - Docker Compose Configuration
+# Run with: docker-compose up -d
+
+version: '3.8'
+
+services:
+  # =============
+  # Backend API
+  # =============
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: documind-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/documind
+      - VECTOR_DB=qdrant
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - LLM_PROVIDER=openai
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DEBUG=false
+    volumes:
+      - ./backend/data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - documind-network
+
+  # =============
+  # PostgreSQL Database
+  # =============
+  postgres:
+    image: postgres:16-alpine
+    container_name: documind-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: documind
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - documind-network
+
+  # =============
+  # Qdrant Vector Database
+  # =============
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: documind-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+    networks:
+      - documind-network
+
+  # =============
+  # MLflow (Experiment Tracking)
+  # =============
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    container_name: documind-mlflow
+    ports:
+      - "5000:5000"
+    environment:
+      - MLFLOW_TRACKING_URI=http://0.0.0.0:5000
+    command: mlflow server --host 0.0.0.0 --port 5000
+    volumes:
+      - mlflow_data:/mlflow
+    restart: unless-stopped
+    networks:
+      - documind-network
+
+  # =============
+  # Ollama (Optional - Local LLM)
+  # =============
+  ollama:
+    image: ollama/ollama:latest
+    container_name: documind-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    # Uncomment for GPU support:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    restart: unless-stopped
+    networks:
+      - documind-network
+
+# =============
+# Volumes
+# =============
+volumes:
+  postgres_data:
+    driver: local
+  qdrant_data:
+    driver: local
+  mlflow_data:
+    driver: local
+  ollama_data:
+    driver: local
+
+# =============
+# Networks
+# =============
+networks:
+  documind-network:
+    driver: bridge

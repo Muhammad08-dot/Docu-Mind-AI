@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+backend/venv/
+backend/__pycache__/
+**/__pycache__/
+*.pyc
+
+# Build outputs
+dist/
+build/
+*.egg-info/
+
+# Environment files (NEVER commit these!)
+.env
+.env.local
+.env.production
+backend/.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Data directories
+backend/data/uploads/*
+backend/data/faiss_index*
+!backend/data/.gitkeep
+
+# Docker
+*.log
+
+# Testing
+coverage/
+.pytest_cache/
+
+# MLflow
+mlruns/
