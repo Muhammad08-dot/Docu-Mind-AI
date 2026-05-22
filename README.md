@@ -89,16 +89,6 @@ docker-compose up -d
 docker-compose ps
 ```
 
-### 3. Access the App
-
-| Service | URL |
-|---------|-----|
-| Frontend | http://localhost:5173 |
-| Backend API | http://localhost:8000 |
-| API Docs | http://localhost:8000/docs |
-| Qdrant UI | http://localhost:6333/dashboard |
-| MLflow | http://localhost:5000 |
-
 ---
 
 ## 📁 Project Structure
@@ -279,10 +269,6 @@ uvicorn main:app --reload
 5. Open a Pull Request
 
 ---
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
